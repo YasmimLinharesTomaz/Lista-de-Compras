@@ -1,0 +1,152 @@
+# Lista de Compras
+
+Aplicação web simples para organizar itens de compras. Os itens ficam salvos no próprio navegador, então a lista continua lá mesmo depois de fechar ou recarregar a página.
+
+O projeto foi feito com HTML, CSS e JavaScript puro, sem frameworks e sem dependências externas.
+
+## Funcionalidades
+
+- Adicionar itens à lista
+- Marcar e desmarcar itens como concluídos (o texto fica riscado e cinza)
+- Remover itens individualmente
+- Remover todos os itens concluídos de uma só vez, com o botão "Limpar concluídos"
+- Persistência automática dos dados no navegador
+- Validação de campo vazio: não permite adicionar um item sem nome
+
+## Tecnologias utilizadas
+
+| Tecnologia | Uso |
+|---|---|
+| HTML5 | Estrutura da página |
+| CSS3 | Estilização e layout (Flexbox) |
+| JavaScript (ES6) | Lógica da aplicação e manipulação do DOM |
+| Web Storage (`localStorage`) | Armazenamento dos itens no navegador |
+
+## Estrutura do projeto
+
+```
+lista-de-compras/
+├── index.html    # Estrutura da página
+├── style.css     # Estilos da aplicação
+├── script.js     # Lógica da aplicação
+└── README.md     # Documentação
+```
+
+## Como executar
+
+Não é necessário instalar nada.
+
+1. Baixe ou clone o repositório.
+2. Mantenha os três arquivos (`index.html`, `style.css` e `script.js`) na mesma pasta.
+3. Abra o arquivo `index.html` em qualquer navegador moderno.
+
+## Como usar
+
+1. Digite o nome do item no campo de texto.
+2. Clique em **Adicionar**.
+3. Clique no nome de um item para marcá-lo como concluído. Clique novamente para desmarcar.
+4. Clique no botão **X** ao lado do item para removê-lo.
+5. Clique em **Limpar concluídos** para remover de uma vez todos os itens que estão riscados.
+
+## Como funciona
+
+Os dados são guardados no `localStorage` com a chave `shoppingList`, no formato de um array de objetos convertido em texto JSON:
+
+```json
+[
+  { "name": "Leite", "completed": false },
+  { "name": "Pão", "completed": true }
+]
+```
+
+Como o `localStorage` só armazena texto, o código usa `JSON.stringify` para salvar e `JSON.parse` para ler.
+
+Quase todas as operações seguem o mesmo ciclo:
+
+1. Ler a lista salva no navegador
+2. Modificar o array
+3. Salvar a lista atualizada
+4. Redesenhar a lista na tela
+
+### Funções do `script.js`
+
+| Função | Responsabilidade |
+|---|---|
+| `addItem()` | Lê o campo de texto, valida o valor, adiciona o novo item ao array, salva e atualiza a tela |
+| `loadList()` | Lê a lista salva, limpa a `<ul>` e cria um `<li>` para cada item |
+| `toggleCompleted(posicao)` | Inverte o estado `completed` do item na posição indicada |
+| `removeItem(posicao)` | Remove do array o item na posição indicada usando `splice` |
+| `clearCompleted()` | Remove todos os itens concluídos de uma vez usando `filter` |
+
+A função `loadList()` também é executada automaticamente assim que a página termina de carregar, por meio do evento `DOMContentLoaded`.
+
+### Limpar concluídos
+
+O botão "Limpar concluídos" chama a função `clearCompleted()`:
+
+```javascript
+function clearCompleted() {
+    const list = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    const remaining = list.filter(item => !item.completed);
+    localStorage.setItem("shoppingList", JSON.stringify(remaining));
+    loadList();
+}
+```
+
+O método `filter` percorre o array e devolve um novo array apenas com os itens que atendem à condição. Aqui, `!item.completed` mantém somente os itens pendentes e descarta os concluídos.
+
+Diferença entre as duas formas de remover:
+
+| Função | Método | O que faz |
+|---|---|---|
+| `removeItem` | `splice` | Altera o array original, removendo um item pela posição |
+| `clearCompleted` | `filter` | Cria um array novo, sem todos os itens concluídos |
+
+### Estilos relevantes
+
+Algumas regras do `style.css` ligadas ao comportamento da lista:
+
+```css
+.completed span {
+    text-decoration: line-through;
+    color: gray;
+}
+
+li span {
+    flex: 1;
+    text-align: left;
+    cursor: pointer;
+}
+
+.clear-btn {
+    background: #e57373;
+}
+
+.clear-btn:hover {
+    background: #c62828;
+}
+```
+
+- `.completed span` aplica o risco e a cor cinza diretamente no texto do item concluído.
+- `li span` com `flex: 1` faz o nome ocupar todo o espaço livre da linha, então o clique funciona em qualquer ponto do item e não só em cima das letras.
+- `.clear-btn` dá ao botão "Limpar concluídos" uma cor própria, para diferenciá-lo do botão "Adicionar".
+
+## Limitações conhecidas
+
+- Os dados ficam salvos apenas no navegador e no dispositivo em que foram criados. Não há sincronização entre aparelhos.
+- Limpar os dados de navegação apaga a lista.
+- O botão "Limpar concluídos" apaga os itens sem pedir confirmação.
+- O nome do item é inserido na página com `innerHTML`. Em um projeto com mais usuários, o ideal é usar `textContent` para evitar a execução de HTML digitado no campo (risco de XSS).
+
+## Possíveis melhorias
+
+- Permitir adicionar itens pressionando a tecla Enter
+- Pedir confirmação antes de limpar os itens concluídos, com `confirm()`
+- Editar o nome de um item já criado
+- Contador de itens pendentes
+- Substituir os `onclick` inline por `addEventListener`
+- Layout adaptado para telas pequenas
+
+## Licença
+
+Projeto de estudo, livre para uso e modificação.
